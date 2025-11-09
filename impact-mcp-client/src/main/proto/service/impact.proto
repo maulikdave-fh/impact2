@@ -1,0 +1,89 @@
+syntax = "proto3";
+
+package service;
+
+import "google/protobuf/empty.proto";
+
+option java_multiple_files = true;
+option java_package = "in.foresthut.impact.models.service";
+
+message CreateSiteRequest {string user_id = 1;
+  string site_name = 2;
+  string wkt_polygon = 3;}
+
+message CreateSiteResponse {string site_id = 1;}
+
+message SiteMapFileUploadRequest {string user_id = 1;
+  string site_name = 2;
+  FileUploadMetadata metadata = 3;
+  bytes chunk_data = 4;}
+
+message FileUploadMetadata {string file_name = 1;
+  string file_type = 2;}
+
+message GetSitesRequest {string user_id = 1;}
+
+message Site {string site_id = 1;
+  string site_name = 2;
+  string wkt_polygon = 3;}
+
+message GetSitesResponse {repeated Site sites = 1;}
+
+message GetSiteRequest {
+  string site_id = 1;
+}
+
+message GetSiteResponse {
+  Site site = 1;
+}
+
+message DeleteSiteRequest {
+  string site_id = 1;
+}
+
+message DeleteSiteResponse {
+  repeated Site site = 1;
+}
+
+message UpdateSiteRequest {
+  Site site = 1;
+}
+
+message UpdateSiteResponse {
+  repeated Site site = 1;
+}
+
+message Error {
+  string code = 1;
+  string message = 2;
+}
+
+message Ping {
+  string message = 1;
+}
+
+message TextMessage {
+  string content = 1;
+}
+
+message Request {oneof object {CreateSiteRequest create_site_request = 1;
+  GetSiteRequest get_site_request = 2;
+  GetSitesRequest get_sites_request = 3;
+  SiteMapFileUploadRequest site_map_file = 4;
+  DeleteSiteRequest delete_site_request = 5;
+  UpdateSiteRequest update_site_request = 6;
+  Ping ping = 7;
+  TextMessage text = 8;
+  }}
+
+
+message Response {oneof object {CreateSiteResponse create_site_response = 1;
+  GetSitesResponse get_sites_response = 2;
+  GetSiteResponse get_site_response = 3;
+  Error error = 4;
+  DeleteSiteResponse delete_site_response = 5;
+  UpdateSiteResponse update_site_response = 6;
+  TextMessage text = 7;
+}}
+
+service ImpactService {rpc StreamMessage(stream Request) returns (stream Response);}

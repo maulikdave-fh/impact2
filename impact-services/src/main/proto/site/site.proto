@@ -1,0 +1,88 @@
+syntax = "proto3";
+
+package site;
+
+option java_multiple_files = true;
+option java_package = "in.foresthut.impact.models.site";
+
+message CreateSiteRequest {string user_id = 1;
+  string site_name = 2;
+  string wkt_polygon = 3;}
+
+message CreateSiteResponse {Site site = 1;}
+
+message SiteResponseV2{oneof message {SiteDetails site_details = 1;
+  SiteArea site_area = 2;
+  SiteDistanceFromSea distance_from_sea = 3;
+  SiteElevation elevation = 4;
+  GetUnionAoIResponse aoiUnion = 5;}}
+
+message SiteDetails {string site_id = 1;
+  string site_name = 2;
+  string wkt_polygon = 3;}
+
+message SiteArea {double area = 1;
+  AreaUnit unit = 2;}
+
+message SiteDistanceFromSea {double distance_from_sea_in_km = 1;}
+
+message SiteElevation {double min_elevation_in_m = 1;
+  double max_elevation_in_m = 2;}
+
+message SiteMapFileUploadRequest {string user_id = 1;
+  string site_name = 2;
+  FileUploadMetadata metadata = 3;
+  bytes chunk_data = 4;}
+
+message FileUploadMetadata {string file_name = 1;
+  string file_type = 2;}
+
+message GetSitesRequest {string user_id = 1;}
+
+enum AreaUnit {HECTARE = 0;}
+
+message Site {string user_id = 1;
+  string site_id = 2;
+  string site_name = 3;
+  string wkt_polygon = 4;
+  double area = 5;
+  AreaUnit unit = 6;
+  double distance_from_sea_in_km = 7;
+  double min_elevation_in_m = 8;
+  double max_elevation_in_m = 9;
+  GetUnionAoIResponse aoi_union = 10;}
+
+message GetSitesResponse {repeated SiteDetails sites = 1;}
+
+message GetSiteRequest {string site_id = 1;}
+
+message GetSiteResponse {Site site = 1;}
+
+message DeleteSiteRequest {string site_id = 1;}
+
+message DeleteSiteResponse {repeated Site site = 1;}
+
+message UpdateSiteRequest {Site site = 1;}
+
+message UpdateSiteResponse {repeated Site site = 1;}
+
+message GetAoIRequest {string site_id = 1;}
+
+message GetUnionAoIRequest{string site_id = 1;}
+
+message GetAoIResponse {string s2_cell_token = 1;
+  bool is_in_restoration_site = 2;
+  string wkt_polygon_string = 3;}
+
+message GetUnionAoIResponse {string aoi_wkt_polygon_string = 1;}
+
+service RestorationSiteService {rpc CreateSite(CreateSiteRequest) returns (CreateSiteResponse);
+  rpc UploadSiteMap(SiteMapFileUploadRequest) returns (CreateSiteResponse);
+  rpc GetSite(GetSiteRequest) returns (GetSiteResponse);
+  rpc GetSites(GetSitesRequest) returns (GetSitesResponse);
+  rpc DeleteSite(DeleteSiteRequest) returns (DeleteSiteResponse);
+  rpc UpdateSite(UpdateSiteRequest) returns (UpdateSiteResponse);
+  rpc GetAoI(GetAoIRequest) returns (stream GetAoIResponse);
+  rpc GetAoIUnion(GetUnionAoIRequest) returns (GetUnionAoIResponse);
+
+  rpc CreateSiteStreaming(CreateSiteRequest) returns (stream SiteResponseV2);}

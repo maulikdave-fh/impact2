@@ -1,0 +1,42 @@
+syntax="proto3";
+
+package user;
+
+import "google/protobuf/empty.proto";
+
+option java_multiple_files = true;
+option java_package = "in.foresthut.impact.models.user";
+
+
+message User {
+  string id = 1;
+  string name = 2;
+  string email = 3;
+  string profile_photo_url = 4;
+}
+
+message SignInRequest {
+  string id_token = 1;
+}
+
+message SignInResponse {
+  string session_token = 1;
+}
+
+message SignOutRequest {
+  string user_id = 1;
+}
+
+message SignOutResponse {
+  google.protobuf.Empty ack = 1;
+}
+
+message GetUserRequest {
+  string user_id = 1;
+}
+
+service UserService {
+  rpc SignIn(SignInRequest) returns (SignInResponse);
+  rpc SignOut(SignOutRequest) returns (SignOutResponse);
+  rpc getUser(GetUserRequest) returns (User);
+}

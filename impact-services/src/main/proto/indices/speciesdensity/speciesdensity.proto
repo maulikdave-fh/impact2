@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+package indices.speciesdensity;
+
+option java_multiple_files = true;
+option java_package = "in.foresthut.impact.models.indices.speciesdensity";
+
+message SpeciesDensityRequest {
+  string site_id = 1;
+  int32 for_year = 2;
+}
+
+message SpeciesDensityResponse {
+  string site_id = 1;
+  int32 for_year = 2;
+  double index = 3;
+  repeated SpeciesDensityAoIBlockPlus aoi_block_plus = 4;
+  int64 max_species_count = 5;
+  int64 min_species_count = 6;
+  int32 avg_species_count = 7;
+  double restoration_site_avg_species_count = 8;
+}
+
+message SpeciesDensityAoIBlockPlus {
+  map<string, bool> aoi_block= 1;
+  int64 species_count = 2;
+}
+
+message SpeciesListRequest {
+  string cell_token = 1;
+  int32 for_year = 2;
+}
+
+message SpeciesListResponse {
+  repeated string species = 1;
+}
+
+service SpeciesDensityIndex {
+  rpc Get(SpeciesDensityRequest) returns (SpeciesDensityResponse);
+  rpc GetSpeciesList(SpeciesListRequest) returns (SpeciesListResponse);
+}

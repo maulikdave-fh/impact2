@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>S3 MVT Tiles</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Include Mapbox GL JS CSS and JS files -->
+    <link href="https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.css" rel="stylesheet" />
+    <script src="https://api.mapbox.com/mapbox-gl-js/v3.4.0/mapbox-gl.js"></script>
+
+    <style>
+        body { margin: 0; padding: 0; }
+        #map { position: absolute; top: 0; bottom: 0; width: 100%; }
+    </style>
+</head>
+<body>
+
+<div id="map"></div>
+
+<script>
+    // NOTE: Mapbox GL JS requires a Mapbox Access Token for their default styles and services.
+    // While you are using your own S3 tiles, you still need a token to initialize the map
+    // or you can configure a completely custom base map without one (more complex).
+    // For this example, replace 'YOUR_MAPBOX_ACCESS_TOKEN' with a valid public token.
+    mapboxgl.accessToken = 'pk.eyJ1IjoiZm9yZXN0aHV0IiwiYSI6ImNtaGxvN3RqMDBqem8ya3FrODJ3dmdlM3QifQ.6jTyywATFttIfSko-ql5sw';
+
+    const map = new mapboxgl.Map({
+        container: 'map',
+        // Start with a basic or empty style if you only want to see your data
+        style: {
+            'version': 8,
+            'sources': {
+                // You can add a background raster layer for context if needed
+                'osm-raster': {
+                    'type': 'raster',
+                    'tiles': ['https://a.tile.openstreetmap.org/{z}/{x}/{y}.png'],
+                    'tileSize': 256
+                },
+            },
+            'layers': [
+                {
+                    'id': 'osm-background',
+                    'type': 'raster',
+                    'source': 'osm-raster',
+                    'minzoom': 0,
+                    'maxzoom': 22
+                }
+            ]
+        },
+        //center: [73.5805054,18.2362594],
+        center: [73.542480, 21.798074],
+        //center: [0,0],
+        zoom: 10
+    });
+
+    // Add your S3 MVT source and layer when the map is loaded
+    map.on('load', () => {
+        map.addSource('impact3-data', {
+            'type': 'vector',
+            // Use the URL template with {z}, {x}, {y} placeholders
+            'tiles': [
+                'https://impact3-vector-tiles.s3.ap-south-1.amazonaws.com/tiles/{z}/{x}/{y}.mvt'
+            ],
+            // Specify the minimum and maximum zoom levels you generated tiles for
+            'minzoom': 0,
+            'maxzoom': 22
+        });
+
+        // Add a layer to display the data.
+        // You need to know the 'source-layer' name from your Java code (e.g., 'your_layer_name')
+        map.addLayer({
+            'id': 'wkt-polygons',
+            'type': 'fill', // Assuming your WKT data resulted in lines or polygons
+            'source': 'impact3-data',
+            'source-layer': 'polygons', // <-- REPLACE WITH YOUR ACTUAL LAYER NAME
+            'paint': {
+                'fill-color': '#ff0000',
+                'fill-opacity': 0.6 // Use fill-opacity for polygons
+            }
+        });
+
+        // If you had points, you would add another layer with type 'circle' or 'symbol'
+    });
+</script>
+
+</body>
+</html>

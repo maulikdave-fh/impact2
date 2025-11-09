@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package indices.endemicity;
+
+option java_multiple_files = true;
+option java_package = "in.foresthut.impact.models.indices.endemicity";
+
+message EndemicityRequest {
+  string site_id = 1;
+}
+
+message EndemicityResponse {
+  string site_id = 1;
+  double index = 3;
+  map<string, double> species_level_endemicity = 4;
+}
+
+service EndemicityIndex {
+  rpc Get(EndemicityRequest) returns(EndemicityResponse);
+}

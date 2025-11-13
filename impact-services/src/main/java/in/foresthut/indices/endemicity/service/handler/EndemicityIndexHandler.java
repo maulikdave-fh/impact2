@@ -88,7 +88,7 @@ public record EndemicityIndexHandler(EndemicityRequest request,
         }
 
         // Calculate site wide endemicity & store in db
-        double index = sumOfEndemicity / siteSpecies.size();
+        double index = siteSpecies.size() != 0? sumOfEndemicity / siteSpecies.size() : 0;
 
         endemicityIndexRepository.add(new EndemicityIndexDao(request.getSiteId(), index, speciesWiseEndemicity));
 

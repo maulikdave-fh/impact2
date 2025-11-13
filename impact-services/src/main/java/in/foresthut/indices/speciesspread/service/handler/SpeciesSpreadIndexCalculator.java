@@ -36,6 +36,7 @@ public record SpeciesSpreadIndexCalculator(String restorationSitePolygon,
         long nSE = occurrenceRepository.speciesCountForPolygon(aoIPolygon, forYear);
         long nSR = occurrenceRepository.speciesCountForPolygon(restorationSitePolygon, forYear);
 
+
         Map<String, Long> restorationSiteTaxaWiseSpeciesCount = new HashMap<>();
         Map<String, Long> aoITaxaWiseSpeciesCount = new HashMap<>();
 
@@ -43,27 +44,30 @@ public record SpeciesSpreadIndexCalculator(String restorationSitePolygon,
             long nSTgE = occurrenceRepository.speciesCountByTaxaGroup(iconicTaxa, aoIPolygon, forYear);
             long nSTgR = occurrenceRepository.speciesCountByTaxaGroup(iconicTaxa, restorationSitePolygon, forYear);
 
-            double taxaGroupSkew =
+            double taxaGroupSkew = 0;
+            if (nSR != 0 && nSTgR != 0)
+                taxaGroupSkew =
                     IMPACT_COEFFICIENTS.get(iconicTaxa) * Math.abs((nSTgE / (double) nSE) - (nSTgR / (double) nSR));
 
             sumOfTaxaGroupSkew += taxaGroupSkew;
 
-            restorationSiteTaxaWiseSpeciesCount.put(iconicTaxa, nSTgE);
-            aoITaxaWiseSpeciesCount.put(iconicTaxa, nSTgR);
-         }
+            restorationSiteTaxaWiseSpeciesCount.put(iconicTaxa, nSTgR);
+            aoITaxaWiseSpeciesCount.put(iconicTaxa, nSTgE);
+        }
 
         long nTgE = occurrenceRepository.numberOfTaxaGroups(aoIPolygon, forYear);
-        index = sumOfTaxaGroupSkew / nTgE;
-        return  new SpeciesSpreadIndexValueObj(index, forYear,
-                                       new SpeciesSpreadIndexDao.RestorationSiteMetaData(nSR, restorationSiteTaxaWiseSpeciesCount),
-                                       new SpeciesSpreadIndexDao.AoIMetaData(nSE, aoITaxaWiseSpeciesCount)
-                                       );
+        index = nTgE != 0 && nSR != 0 ? sumOfTaxaGroupSkew / nTgE : 0;
+        return new SpeciesSpreadIndexValueObj(
+                index, forYear,
+                new SpeciesSpreadIndexDao.RestorationSiteMetaData(nSR, restorationSiteTaxaWiseSpeciesCount),
+                new SpeciesSpreadIndexDao.AoIMetaData(nSE, aoITaxaWiseSpeciesCount));
 
     }
 
-    public record SpeciesSpreadIndexValueObj (double index, int forYear,
-                                       SpeciesSpreadIndexDao.RestorationSiteMetaData restorationSiteMetaData,
-                                       SpeciesSpreadIndexDao.AoIMetaData aoIMetaData) {
+    public record SpeciesSpreadIndexValueObj(double index,
+                                             int forYear,
+                                             SpeciesSpreadIndexDao.RestorationSiteMetaData restorationSiteMetaData,
+                                             SpeciesSpreadIndexDao.AoIMetaData aoIMetaData) {
     }
 
 }

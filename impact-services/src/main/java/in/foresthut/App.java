@@ -5,6 +5,9 @@ import com.nirvighna.mongodb.commons.DatabaseConfig;
 import com.nirvighna.redis.client.map.KeyValuePairHolder;
 import in.foresthut.aoi.AoIProvider;
 import in.foresthut.aoi.S2GeometryBasedAoIProvider;
+import in.foresthut.indices.endemicity.repository.EndemicityIndexRepository;
+import in.foresthut.indices.endemicity.repository.EndemicityIndexRepositoryImpl;
+import in.foresthut.indices.endemicity.service.EndemicityIndexService;
 import in.foresthut.indices.speciesdensity.repository.SpeciesDensityIndexRepository;
 import in.foresthut.indices.speciesdensity.repository.SpeciesDensityIndexRepositoryImpl;
 import in.foresthut.indices.speciesdensity.service.SpeciesDensityIndexService;
@@ -14,6 +17,9 @@ import in.foresthut.indices.speciesdiversity.service.SpeciesDiversityIndexServic
 import in.foresthut.indices.speciesspread.repository.SpeciesSpreadIndexRepository;
 import in.foresthut.indices.speciesspread.repository.SpeciesSpreadIndexRepositoryImpl;
 import in.foresthut.indices.speciesspread.service.SpeciesSpreadIndexService;
+import in.foresthut.infra.endemicity.repository.EndemicityRepository;
+import in.foresthut.infra.endemicity.repository.EndemicityRepositoryImpl;
+import in.foresthut.infra.gbif.GBIFClient;
 import in.foresthut.infra.occurrence.repository.OccurrenceRepository;
 import in.foresthut.infra.occurrence.repository.OccurrenceRepositoryImpl;
 import in.foresthut.infra.s2token.repository.S2CellTokenPlusRepo;
@@ -44,6 +50,9 @@ public class App {
                 new SpeciesDiversityIndexRepositoryImpl(databaseConfig);
         final SpeciesSpreadIndexRepository speciesSpreadIndexRepository =
                 new SpeciesSpreadIndexRepositoryImpl(databaseConfig);
+        final EndemicityIndexRepository endemicityIndexRepository = new EndemicityIndexRepositoryImpl(databaseConfig);
+        final EndemicityRepository endemicityRepository = new EndemicityRepositoryImpl(databaseConfig);
+        final GBIFClient gbifClient = GBIFClient.getInstance();
         final RestorationSiteRepository restorationSiteRepository = new RestorationSiteRepositoryImpl(databaseConfig);
         final S2CellTokenPlusRepo cellTokenPlusRepo = new S2CellTokenPlusRepoImpl(databaseConfig);
         final AoIProvider aoIProvider = new S2GeometryBasedAoIProvider(cellTokenPlusRepo);
@@ -62,7 +71,11 @@ public class App {
                                 speciesDiversityIndexRepository),
                         new SpeciesSpreadIndexService(
                                 occurrenceRepository, restorationSiteRepository,
-                                speciesSpreadIndexRepository)));
+                                speciesSpreadIndexRepository),
+                        new EndemicityIndexService(
+                                occurrenceRepository, restorationSiteRepository, endemicityIndexRepository,
+                                endemicityRepository, gbifClient)));
+
         server.start();
         server.await();
     }

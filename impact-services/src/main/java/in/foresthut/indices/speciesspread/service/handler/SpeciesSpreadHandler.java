@@ -75,6 +75,11 @@ public record SpeciesSpreadHandler(SpeciesSpreadRequest request,
                         restorationSiteDao.wktPolygon(), restorationSiteDao.aoIUnionWktPolygon(),
                         request().getForYear(), occurrenceRepository).calculate();
 
+        // Store species spread index details in db
+        speciesSpreadIndexRepository.add(new SpeciesSpreadIndexDao(
+                request.getSiteId(), request.getForYear(), speciesSpreadIndexValueObj.index(),
+                speciesSpreadIndexValueObj.restorationSiteMetaData(), speciesSpreadIndexValueObj.aoIMetaData()));
+
         // Construct response
         RestorationSiteMetaData restorationSiteMetaData = RestorationSiteMetaData.newBuilder()
                                                                                  .setTotalSpeciesCount(

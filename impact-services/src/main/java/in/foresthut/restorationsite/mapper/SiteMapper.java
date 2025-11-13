@@ -16,9 +16,9 @@ public class SiteMapper {
                    .setDistanceFromSeaInKm(restorationSiteDao.distanceFromSeaInKm())
                    .setMinElevationInM(restorationSiteDao.minElevationInMeter())
                    .setMaxElevationInM(restorationSiteDao.maxElevationInMeter())
-                   .setAoiUnion(GetUnionAoIResponse.newBuilder()
-                                                   .setAoiWktPolygonString(restorationSiteDao.aoIUnionWktPolygon())
-                                                   .build())
+//                   .setAoiUnion(GetUnionAoIResponse.newBuilder()
+//                                                   .setAoiWktPolygonString(restorationSiteDao.aoIUnionWktPolygon())
+//                                                   .build())
                    .build();
     }
 }

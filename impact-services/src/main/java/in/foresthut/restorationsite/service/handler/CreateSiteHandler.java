@@ -88,6 +88,7 @@ public record CreateSiteHandler(CreateSiteRequest createSiteRequest,
     public RestorationSiteDao createSite(CreateSiteRequest createSiteRequest) {
         // 2. Get AoI for the site
         var aoICellTokenStrings = aoIProvider.getAoI(createSiteRequest.getWktPolygon());
+        String aoIUnionString  = GetAoIUnionHandler.getAoIUnionWktString(aoICellTokenStrings);
 
         logger.info("The site '{}' has {} AoI blocks", createSiteRequest.getSiteName(), aoICellTokenStrings.size());
 
@@ -103,7 +104,7 @@ public record CreateSiteHandler(CreateSiteRequest createSiteRequest,
         var restorationSiteDao = new RestorationSiteDao(
                 siteId, createSiteRequest.getUserId(), createSiteRequest.getSiteName(),
                 createSiteRequest.getWktPolygon(), AreaCalculator.area(createSiteRequest.getWktPolygon()),
-                AreaUnit.HECTARE.toString(), aoICellTokenStrings, distanceFromSea, elevations[0], elevations[1], null);
+                AreaUnit.HECTARE.toString(), aoICellTokenStrings, distanceFromSea, elevations[0], elevations[1], aoIUnionString);
         restorationSiteRepository.add(restorationSiteDao);
         return restorationSiteDao;
     }

@@ -48,7 +48,15 @@ public record SpeciesDensityRequestHandler(SpeciesDensityRequest request,
                                                  .setSiteId(existingSpeciesDensity.siteId())
                                                  .setForYear(existingSpeciesDensity.forYear())
                                                  .setIndex(existingSpeciesDensity.index())
-                                                 .addAllAoiBlockPlus(existingSpeciesDensity.aoiBlocks())
+                                                 .addAllAoiBlockPlus(existingSpeciesDensity.aoiBlocks()
+                                                                                           .stream()
+                                                                                           .map(block -> SpeciesDensityAoIBlockPlus.newBuilder()
+                                                                                                                                   .setSpeciesCount(
+                                                                                                                                           block.speciesCount)
+                                                                                                                                   .putAllAoiBlock(
+                                                                                                                                           block.aoIBlock)
+                                                                                                                                   .build())
+                                                                                           .toList())
                                                  .build();
 
             responseObserver.onNext(response);
@@ -75,7 +83,15 @@ public record SpeciesDensityRequestHandler(SpeciesDensityRequest request,
                                              .setForYear(request.getForYear())
                                              .setIndex(speciesDensityValueObj.speciesDensityIndexDao.index())
                                              .addAllAoiBlockPlus(
-                                                     speciesDensityValueObj.speciesDensityIndexDao.aoiBlocks())
+                                                     speciesDensityValueObj.speciesDensityIndexDao.aoiBlocks()
+                                                                                                  .stream()
+                                                                                                  .map(block -> SpeciesDensityAoIBlockPlus.newBuilder()
+                                                                                                                                          .setSpeciesCount(
+                                                                                                                                                  block.speciesCount)
+                                                                                                                                          .putAllAoiBlock(
+                                                                                                                                                  block.aoIBlock)
+                                                                                                                                          .build())
+                                                                                                  .toList())
                                              .setMaxSpeciesCount(speciesDensityValueObj.maxSpeciesCount)
                                              .setMinSpeciesCount(speciesDensityValueObj.minSpeciesCount)
                                              .setAvgSpeciesCount(speciesDensityValueObj.avgSpeciesCount)
@@ -91,8 +107,8 @@ public record SpeciesDensityRequestHandler(SpeciesDensityRequest request,
 
     public SpeciesDensityValueObj calculateSpeciesDensity(Map<String, Boolean> aoIBlocks) {
         // get species count for each AoI blocks of the site
-        List<SpeciesDensityAoIBlockPlus> restorationSiteAoIBlockPlus = new ArrayList<>();
-        List<SpeciesDensityAoIBlockPlus> aoIRegionAoIBlockPlus = new ArrayList<>();
+        List<SpeciesDensityAoIPlus> restorationSiteAoIBlockPlus = new ArrayList<>();
+        List<SpeciesDensityAoIPlus> aoIRegionAoIBlockPlus = new ArrayList<>();
 
         long maxSpeciesCount = Integer.MIN_VALUE;
         long minSpeciesCount = Integer.MAX_VALUE;
@@ -106,12 +122,8 @@ public record SpeciesDensityRequestHandler(SpeciesDensityRequest request,
 
             aoISpeciesCountTotal += speciesCount;
 
-            var speciesDensityAoIBlockPlus = SpeciesDensityAoIBlockPlus.newBuilder()
-                                                                       .setSpeciesCount(speciesCount)
-                                                                       .putAoiBlock(
-                                                                               entrySet.getKey(),
-                                                                               entrySet.getValue())
-                                                                       .build();
+            var speciesDensityAoIBlockPlus =
+                    new SpeciesDensityAoIPlus(Map.of(entrySet.getKey(), entrySet.getValue()), speciesCount);
 
             if (entrySet.getValue()) {
                 restorationSiteAoIBlockPlus.add(speciesDensityAoIBlockPlus);
@@ -143,15 +155,14 @@ public record SpeciesDensityRequestHandler(SpeciesDensityRequest request,
         logger.info("Restoration site avg count {}", restorationSiteAvgSpeciesCount);
 
         // Calculate the index
-        if (restorationSiteAvgSpeciesCount > maxSpeciesCount)
-            maxSpeciesCount = (int) restorationSiteAvgSpeciesCount;
+        if (restorationSiteAvgSpeciesCount > maxSpeciesCount) maxSpeciesCount = (int) restorationSiteAvgSpeciesCount;
 
         double speciesDensityIndex =
-                (double)((int) restorationSiteAvgSpeciesCount - minSpeciesCount) / (maxSpeciesCount - minSpeciesCount);
+                (double) ((int) restorationSiteAvgSpeciesCount - minSpeciesCount) / (maxSpeciesCount - minSpeciesCount);
 
         logger.info("Species Density {}", speciesDensityIndex);
         // Construct the dao
-        List<SpeciesDensityAoIBlockPlus> allBlocks = new ArrayList<>();
+        List<SpeciesDensityAoIPlus> allBlocks = new ArrayList<>();
         allBlocks.addAll(aoIRegionAoIBlockPlus);
         allBlocks.addAll(restorationSiteAoIBlockPlus);
 
@@ -169,6 +180,11 @@ public record SpeciesDensityRequestHandler(SpeciesDensityRequest request,
                                          long minSpeciesCount,
                                          int avgSpeciesCount,
                                          double restorationSiteAvgSpeciesCount) {
+
+    }
+
+    public record SpeciesDensityAoIPlus(Map<String, Boolean> aoIBlock,
+                                        long speciesCount) {
 
     }
 }

@@ -105,7 +105,7 @@ public record SpeciesDiversityHandler(SpeciesDiversityRequest request,
             speciesDiversityIndex += (pi * lnPi);
         }
 
-        speciesDiversityIndex *= -1;
+        speciesDiversityIndex = speciesDiversityIndex != 0 ? speciesDiversityIndex * -1 : speciesDiversityIndex;
 
         SpeciesDiversityIndexDao speciesDiversityIndexDao =
                 new SpeciesDiversityIndexDao(

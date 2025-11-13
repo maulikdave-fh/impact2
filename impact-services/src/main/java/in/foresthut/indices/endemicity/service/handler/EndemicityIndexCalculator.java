@@ -1,6 +1,7 @@
 package in.foresthut.indices.endemicity.service.handler;
 
 import in.foresthut.commons.geometry.bioregion.Bioregion;
+import in.foresthut.infra.endemicity.entity.Endemicity;
 import in.foresthut.infra.endemicity.repository.EndemicityRepository;
 import in.foresthut.infra.gbif.GBIFClient;
 import in.foresthut.infra.occurrence.repository.OccurrenceRepository;
@@ -16,11 +17,22 @@ public record EndemicityIndexCalculator(Bioregion bioregion,
     private static final Logger logger = LoggerFactory.getLogger(EndemicityIndexCalculator.class);
 
     public EndemicityIndexValueObj calculate() {
-        long bioregionOccurrenceCount =
-                occurrenceRepository.speciesOccurrencesForPolygon(speciesName, bioregion().getWKTString());
+        long bioregionOccurrenceCount;
+        // Check in endemicity repo if endemicity exists for the species
+        long globalCount;
+        double endemicity;
 
-        long globalCount = gbifClient.observations(speciesName, null);
-        double endemicity = (double) bioregionOccurrenceCount / globalCount;
+        Endemicity endemicityDao = endemicityRepository.get(speciesName, bioregion.code());
+        if (endemicityDao != null) {
+            endemicity = endemicityDao.index();
+            globalCount = endemicityDao.worldOccurrenceCount();
+            bioregionOccurrenceCount = endemicityDao.bioregionOccurrenceCount();
+        } else {
+            globalCount = gbifClient.observations(speciesName, null);
+            bioregionOccurrenceCount =
+                    occurrenceRepository.speciesOccurrencesForPolygon(speciesName, bioregion().getWKTString());
+            endemicity = (double) bioregionOccurrenceCount / globalCount;
+        }
         return new EndemicityIndexValueObj(
                 bioregion().code(), speciesName, endemicity, bioregionOccurrenceCount, globalCount);
     }
